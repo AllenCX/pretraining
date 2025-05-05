@@ -33,11 +33,11 @@ config = GPTNeoXConfig()
 # 769_782_400 param model as a sample.
 def get_model():
     config = GPTNeoXConfig(
-        vocab_size=10000,
-        num_attention_heads=40,
+        vocab_size=60000,
+        num_attention_heads=10,
         hidden_size=1600,
-        intermediate_size=6400,
-        num_hidden_layers=24,
+        intermediate_size=1600,
+        num_hidden_layers=6,
         max_position_embeddings=2048,
     )
     return GPTNeoXForCausalLM(config)
@@ -58,5 +58,5 @@ def load_tokenizer(
         # By default we use the HF AutoTokenizer class
         case _:
             return AutoTokenizer.from_pretrained(
-                model_constraints.tokenizer, cache_dir=cache_dir
+                "EleutherAI/gpt-neox-20b", cache_dir=cache_dir
             )

@@ -22,9 +22,9 @@ class ModelFactory:
         """
 
         # Get current model parameters
-        model_constraints = constants.MODEL_CONSTRAINTS_BY_COMPETITION_ID.get(
-            competition_id, None
-        )
+        print("competition_id")
+        print(competition_id)
+        model_constraints = constants.MODEL_CONSTRAINTS_BY_COMPETITION_ID[competition_id]
 
         if model_constraints is None:
             raise RuntimeError(

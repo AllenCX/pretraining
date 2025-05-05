@@ -26,6 +26,7 @@ import typing
 
 import bittensor as bt
 import torch
+import numpy as np
 import wandb
 from dotenv import load_dotenv
 from taoverse.metagraph import utils as metagraph_utils
@@ -128,7 +129,7 @@ def get_config():
     )
     parser.add_argument("--lr", type=float, default=0.00001, help="Learning rate.")
     parser.add_argument(
-        "--bs", type=int, default=constants.batch_size, help="Batch size"
+        "--bs", type=int, default=128, help="Batch size"
     )
     parser.add_argument("--sl", type=int, default=4096, help="Sequence length")
     parser.add_argument(
@@ -231,7 +232,7 @@ async def load_starting_model(
 
 
 async def main(config: bt.config):
-    raise NotImplementedError("You must implement your own training logic in miner.py")
+    # raise NotImplementedError("You must implement your own training logic in miner.py")
 
     # Create bittensor objects.
     bt.logging.set_warning()
@@ -316,7 +317,8 @@ async def main(config: bt.config):
 
         # At the end of the run, upload the model to wandb, for debugging purposes only.
         # This is not seen by validators.
-        wandb_run.save(os.path.join(model_dir, "*"), base_path=model_dir, policy="end")
+        print("model dir:" + os.path.join(model_dir, "*"))
+        wandb_run.save(os.path.join(model_dir, "*"), base_path=constants.ROOT_DIR,policy="end")
     else:
         logging.warning(
             "Not posting run to wandb. Either --offline is specified or the wandb settings are missing."
@@ -344,7 +346,7 @@ async def main(config: bt.config):
             ]
 
             # Change this loader if you wish to use a different dataset
-            loader = pt.dataset.SubsetFineWebEdu2Loader(
+            loader = pt.dataset.SubsetFineWebLoader(
                 batch_size=config.bs,
                 sequence_length=config.sl,
                 num_pages=config.pages_per_epoch,
@@ -357,8 +359,8 @@ async def main(config: bt.config):
 
             for i, batch in enumerate(loader):
                 # Move the input batch to the device
+                batch = torch.from_numpy(batch)
                 inputs = batch.to(model.device)
-
                 # Forward pass: compute the model output and loss
                 outputs = model(inputs, labels=inputs)
 
@@ -410,8 +412,10 @@ async def main(config: bt.config):
                 )
 
                 # First, reload the best model from the training run.
+                print("kwargs")
+                print(kwargs)                
                 model_to_upload = pt.mining.load_local_model(
-                    model_dir, model_constraints.kwargs
+                    model_dir, config.competition_id
                 )
 
                 await pt.mining.push(
